@@ -1,0 +1,83 @@
+{
+  "name": "cryptoapis-wallet-recovery-tool",
+  "author": "Crypto APIs <developers@cryptoapis.io>",
+  "description": "Tool for recovering private key from wallet recovery data",
+  "version": "0.1.0",
+  "main": "./src/main.js",
+  "license": "MIT",
+  "homepage": "https://bitbucket.org/menadev/cryptoapis-recovery-tool-lib#readme",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron .",
+    "build": "electron-builder",
+    "dist:linux": "electron-builder --linux",
+    "dist:windows": "electron-builder --windows",
+    "dist:mac": "electron-builder --macos"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@bitbucket.org/menadev/cryptoapis-wallet-recovery-tool.git"
+  },
+  "dependencies": {
+    "bigint-mod-arith": "^3.0.1",
+    "bignumber.js": "^9.0.1",
+    "bs58check": "^2.1.2",
+    "generate-password": "^1.7.0",
+    "hdkey": "^2.0.1",
+    "node-rsa": "^1.1.1",
+    "password-validator": "^5.2.1",
+    "sjcl": "^1.0.8",
+    "validate.js": "^0.13.1"
+  },
+  "devDependencies": {
+    "electron": "^15.3.0",
+    "electron-builder": "^22.10.5"
+  },
+  "build": {
+    "productName": "cryptoapis-wallet-recovery-tool",
+    "appId": "io.cryptoapis.app",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.utilities",
+      "target": "dmg",
+      "icon": "./src/resources/icons/128x128.icns",
+      "identity": null
+    },
+    "dmg": {
+      "background": "./src/resources/images/background-mac-dmg.png",
+      "icon": "./src/resources/icons/256x256.icns",
+      "iconSize": 256,
+      "window": {
+        "width": 540,
+        "height": 380
+      },
+      "contents": [
+        {
+          "x": 141,
+          "y": 257
+        },
+        {
+          "x": 372,
+          "y": 257,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "win": {
+      "publisherName": "Crypto APIs",
+      "target": "nsis",
+      "icon": "./src/resources/icons/128x128.ico"
+    },
+    "linux": {
+      "target": "AppImage",
+      "category": "Utility",
+      "icon": "./src/resources/icons/256x256.icns"
+    }
+  }
+}

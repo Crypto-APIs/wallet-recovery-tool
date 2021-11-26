@@ -1,0 +1,5 @@
+.idea
+.npm
+node_modules
+dist/*
+!dist/.gitkeep
