@@ -9,6 +9,8 @@
 ## Table of Contents
 
 - [Installing](#installing)
+  - [First Method](#first-method)
+  - [Second Method](#second-method)
 - [Usage](#usage)
 - [Building executable files](#building-executable-files)
     - [With docker](#with-docker)
@@ -19,14 +21,22 @@
 
 ## Installing
 
-You need to have `npm` package manager installed.
+#### First Method
 
-To install and start the app you need to run these two commands.
+First you need to clone the repository.
+
+Then you need to have `npm` package manager installed.
+
+To install and start the application you need to run these two commands.
 
 ```bash
 npm i -D
 npm run start
 ```
+
+#### Second Method
+
+You can also use the application by installing it on your local OS by downloading and running one of the installation files published in the [releases](https://github.com/Crypto-APIs/wallet-recovery-tool/releases) section of this repository.
 
 ## Usage
 
