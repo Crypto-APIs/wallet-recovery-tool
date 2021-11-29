@@ -1,6 +1,6 @@
-![CryptoAPIs](./src/resources/images/logo.svg?raw=true)
+![Crypto APIs](./src/resources/images/logo.svg?raw=true)
 
-# CryptoAPIs Wallet Recovery tool
+# Crypto APIs Wallet Recovery tool
 
 #### Tool for recovering private key from wallet recovery data
 

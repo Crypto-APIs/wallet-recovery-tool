@@ -31,9 +31,9 @@ class FileService extends BaseService {
                     status = false;
                 }
             }
-        }
 
-        this.mainWindow.webContents.send("status:recovery-data", status);
+            this.mainWindow.webContents.send("status:recovery-data", status);
+        }
 
         return fileData;
     }
@@ -57,9 +57,9 @@ class FileService extends BaseService {
                     status = false;
                 }
             }
-        }
 
-        this.mainWindow.webContents.send("status:rsa-key", status);
+            this.mainWindow.webContents.send("status:rsa-key", status);
+        }
 
         return fileData;
     }
