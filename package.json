@@ -2,7 +2,7 @@
   "name": "cryptoapis-wallet-recovery-tool",
   "author": "Crypto APIs <developers@cryptoapis.io>",
   "description": "Tool for recovering private key from wallet recovery data",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "./src/main.js",
   "license": "MIT",
   "homepage": "https://bitbucket.org/menadev/cryptoapis-recovery-tool-lib#readme",

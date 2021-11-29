@@ -29,7 +29,9 @@ class Base {
     createMenu() {
         const template = MAIN_MENU_OPTIONS;
         if (IS_MAC) {
-            template.unshift({});
+            template.unshift({
+                label: app.getName()
+            });
         }
 
         if (process.env.NODE_ENV !== 'production') {
