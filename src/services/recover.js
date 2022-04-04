@@ -28,7 +28,7 @@ class RecoverService extends BaseService {
 
         const privateKeyDataJson = await this.getJsonFromFile(rsaPath);
         if (!privateKeyDataJson) {
-            return "Private RSA kye input file is invalid";
+            return "Private RSA key input file is invalid";
         }
 
         const rsaValidationResult = this.validator.validatePrivateKey(privateKeyDataJson);
