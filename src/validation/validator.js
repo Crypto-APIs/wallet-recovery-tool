@@ -1,7 +1,9 @@
 const validator = require('validate.js')
     , PasswordValidator = require('password-validator')
-    , privateKeyConstraints = require('./constraints/privateKey')
+    , sjclEncryptedPrivateKeyConstraints = require('./constraints/sjclEncryptedPrivateKey')
     , recoveryDataConstraints = require('./constraints/recoveryData')
+    , privateKeyTypeEnum = require("../lib/enumerations/privateKeyType")
+    , crypto = require("crypto")
 ;
 
 class Validator {
@@ -25,11 +27,24 @@ class Validator {
     }
 
     /**
-     * @param {object} data
+     * @param {object|string} data
+     * @param {string} privateKeyType
      * @return {boolean}
      */
-    validatePrivateKey(data) {
-        return this.validator.validate(data, privateKeyConstraints);
+    validatePrivateKey(data, privateKeyType) {
+        switch (privateKeyType) {
+            case privateKeyTypeEnum.SJCL_ENCRYPTED:
+                return this.validator.validate(data, sjclEncryptedPrivateKeyConstraints);
+            case privateKeyTypeEnum.RAW_PEM:
+                try {
+                    crypto.createPrivateKey(data);
+                    return false;
+                } catch (e) {
+                    return true
+                }
+            default:
+                return true;
+        }
     }
 
     /**

@@ -62,3 +62,8 @@ h1 {
     margin: auto;
     width: 50%;
 }
+
+select.form-control {
+    -webkit-appearance: menulist;
+    width: fit-content;
+}

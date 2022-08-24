@@ -9,6 +9,7 @@ const mathUtils = require("../utils/math");
 const crypto = require("crypto");
 const xpubUtils = require('../utils/xpub');
 const sjcl = require('sjcl');
+const privateKeyTypeEnum = require("../enumerations/privateKeyType")
 
 class RecoveryToolService {
 
@@ -49,20 +50,23 @@ class RecoveryToolService {
 
     /**
      * @param {RecoveryDataEntity} recoveryData
-     * @param {Buffer} encryptedPrivateKey
-     * @param {string} password
-     * @return {Promise<string|null>}
+     * @param {Buffer} privateKeyBuffer
+     * @param {string} privateKeyType
+     * @param {string|null} password
+     * @return {Promise<string>}
      */
-    async recoverXpriv(recoveryData, encryptedPrivateKey, password) {
-        let decryptedPrivateKey;
+    async recoverXpriv(recoveryData, privateKeyBuffer, privateKeyType, password= null) {
+        let rsaPrivateKey;
         try {
-            decryptedPrivateKey = sjcl.decrypt(password, encryptedPrivateKey.toString());
+            rsaPrivateKey = privateKeyType.includes(privateKeyTypeEnum.SJCL_ENCRYPTED)
+                ? sjcl.decrypt(password, privateKeyBuffer.toString())
+                : privateKeyBuffer.toString();
         } catch (e) {
             throw new Error("Invalid password!")
         }
 
-        const recoveredPrivateKeyPromise = this.recoverPrivateKey(recoveryData.getKeyParts(), decryptedPrivateKey);
-        const recoveredChainCodePromise = this.recoverChainCode(recoveryData.getMasterChainCodeKey(), recoveryData.getMasterChainCode(), decryptedPrivateKey);
+        const recoveredPrivateKeyPromise = this.recoverPrivateKey(recoveryData.getKeyParts(), rsaPrivateKey);
+        const recoveredChainCodePromise = this.recoverChainCode(recoveryData.getMasterChainCodeKey(), recoveryData.getMasterChainCode(), rsaPrivateKey);
 
         const [privateKey, chainCode] = await Promise.all([recoveredPrivateKeyPromise, recoveredChainCodePromise]);
 

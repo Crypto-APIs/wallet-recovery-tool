@@ -2,7 +2,7 @@ let recoveryDataPath, rsaPath;
 
 const recoveryDataFileButton = document.getElementById("recoveryDataFileButton");
 const recoveryDataFileText = document.getElementById("recoveryDataFileText");
-recoveryDataFileButton.addEventListener("click", function() {
+recoveryDataFileButton.addEventListener("click", function () {
     window.api.invoke("file:recovery-data").then(result => {
         if (!result.canceled) {
             recoveryDataFileText.innerText = result.filePaths[0];
@@ -12,21 +12,25 @@ recoveryDataFileButton.addEventListener("click", function() {
 });
 
 const rsaFileButton = document.getElementById("rsaFileButton");
-const rsaFileText = document.getElementById("rsaFileText");
-rsaFileButton.addEventListener("click", function() {
-    window.api.invoke("file:rsa-key").then(result => {
+rsaFileButton.addEventListener("click", handlePrivateKeyFileInput);
+
+function handlePrivateKeyFileInput() {
+    const rsaFileText = document.getElementById("rsaFileText");
+    const privateKeyType = document.getElementById("privateKeySelect").value;
+    window.api.invoke("file:rsa-key", privateKeyType).then(result => {
         if (!result.canceled) {
             rsaFileText.innerText = result.filePaths[0];
             rsaPath = result.filePaths[0];
         }
     });
-});
+}
 
 const recoverButton = document.getElementById("recoverButton");
 const recoveryResultContainer = document.getElementById("recoveryResultContainer");
 recoverButton.addEventListener("click", () => {
-    const password = document.getElementById("password").value;
-    if (!(password.length && password.length > 0)) {
+    const privateKeyType = document.getElementById("privateKeySelect").value;
+    const passwordElement = document.getElementById("password");
+    if (passwordElement && !(passwordElement.value.length && passwordElement.length > 0)) {
         alert("Password must not be empty!");
         return
     }
@@ -37,7 +41,7 @@ recoverButton.addEventListener("click", () => {
         "</div>\n" +
         "</div>\n";
 
-    window.api.invoke("recover:recover-xpriv", recoveryDataPath, rsaPath, password).then(result => {
+    window.api.invoke("recover:recover-xpriv", recoveryDataPath, rsaPath, privateKeyType, passwordElement?.value).then(result => {
         recoveryResultContainer.innerHTML = `<textarea id="recoveryResult" disabled>${result}</textarea>`;
     });
 });
@@ -58,3 +62,49 @@ window.api.receive("status:recovery-data", (status) => {
     }
 });
 
+document.getElementById("privateKeySelect").addEventListener("change", (data) => {
+    const selectValue = document.getElementById("privateKeySelect").value;
+
+    let rsaFileButton;
+    switch (selectValue) {
+        case "rawPemPrivateKey":
+            document.getElementById("privateKeyContainer").innerHTML = `<div class="row mt-3">\n
+                <div class="col input-label">
+                    Private RSA key:<span id="rsaFileStatus"></span>
+                </div>
+                <div class="col">
+                    <button id="rsaFileButton" type="button" class="btn btn-secondary">Choose file</button>
+                </div>
+            </div>
+            <div class="row" id="rsaFileText"></div>\n`
+
+            rsaFileButton = document.getElementById("rsaFileButton");
+            rsaFileButton.addEventListener("click", handlePrivateKeyFileInput);
+
+            break;
+        case "sjclEncryptedPrivateKey":
+            document.getElementById("privateKeyContainer").innerHTML = `<div class="row mt-3">
+                        <div class="col input-label">
+                            Private RSA key:<span id="rsaFileStatus"></span>
+                        </div>
+                        <div class="col">
+                            <button id="rsaFileButton" type="button" class="btn btn-secondary">Choose file</button>
+                        </div>
+                    </div>
+                    <div class="row" id="rsaFileText"></div>
+                    <div class="row mt-3">
+                        <div class="col input-label">
+                            Private RSA key password:<span id="passwordStatus"></span>
+                        </div>
+                        <div class="col">
+                            <input type="text" id="password" class="form-control"/>
+                        </div>
+                    </div>
+                    <div class="row" id="passwordText"></div>`;
+
+            rsaFileButton = document.getElementById("rsaFileButton");
+            rsaFileButton.addEventListener("click", handlePrivateKeyFileInput);
+
+            break;
+    }
+});
