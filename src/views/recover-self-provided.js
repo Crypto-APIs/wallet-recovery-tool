@@ -30,7 +30,7 @@ const recoveryResultContainer = document.getElementById("recoveryResultContainer
 recoverButton.addEventListener("click", () => {
     const privateKeyType = document.getElementById("privateKeySelect").value;
     const passwordElement = document.getElementById("password");
-    if (passwordElement && !(passwordElement.value.length && passwordElement.length > 0)) {
+    if (passwordElement && !(passwordElement.value.length)) {
         alert("Password must not be empty!");
         return
     }
@@ -65,7 +65,6 @@ window.api.receive("status:recovery-data", (status) => {
 document.getElementById("privateKeySelect").addEventListener("change", (data) => {
     const selectValue = document.getElementById("privateKeySelect").value;
 
-    let rsaFileButton;
     switch (selectValue) {
         case "rawPemPrivateKey":
             document.getElementById("privateKeyContainer").innerHTML = `<div class="row mt-3">\n
@@ -76,10 +75,9 @@ document.getElementById("privateKeySelect").addEventListener("change", (data) =>
                     <button id="rsaFileButton" type="button" class="btn btn-secondary">Choose file</button>
                 </div>
             </div>
-            <div class="row" id="rsaFileText"></div>\n`
+            <div class="row" id="rsaFileText"></div>\n`;
 
-            rsaFileButton = document.getElementById("rsaFileButton");
-            rsaFileButton.addEventListener("click", handlePrivateKeyFileInput);
+            document.getElementById("rsaFileButton").addEventListener("click", handlePrivateKeyFileInput);
 
             break;
         case "sjclEncryptedPrivateKey":
@@ -102,8 +100,7 @@ document.getElementById("privateKeySelect").addEventListener("change", (data) =>
                     </div>
                     <div class="row" id="passwordText"></div>`;
 
-            rsaFileButton = document.getElementById("rsaFileButton");
-            rsaFileButton.addEventListener("click", handlePrivateKeyFileInput);
+            document.getElementById("rsaFileButton").addEventListener("click", handlePrivateKeyFileInput);
 
             break;
     }

@@ -1,6 +1,6 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const {app, BrowserWindow, ipcMain} = require('electron');
 
-const { IS_MAC } = require('./config');
+const {IS_MAC} = require('./config');
 const Base = require('./base');
 const RecoverService = require('./services/recover');
 const UtilityService = require('./services/utility');

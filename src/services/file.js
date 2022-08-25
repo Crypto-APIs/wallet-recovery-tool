@@ -3,7 +3,7 @@
 const {dialog} = require('electron');
 const BaseService = require('./base');
 const privateKeyTypeEnum = require("../lib/enumerations/privateKeyType");
-const { promises: fs } = require('fs');
+const {promises: fs} = require('fs');
 
 class FileService extends BaseService {
     constructor(mainWindow) {

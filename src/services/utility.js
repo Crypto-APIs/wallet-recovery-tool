@@ -1,6 +1,6 @@
 'use strict';
 
-const { shell, clipboard } = require('electron');
+const {shell, clipboard} = require('electron');
 const generator = require('generate-password');
 const BaseService = require('./base');
 

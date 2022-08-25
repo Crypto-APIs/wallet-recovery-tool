@@ -1,6 +1,6 @@
 'use strict'
 
-const { BrowserWindow, app, Menu} = require('electron');
+const {BrowserWindow, app, Menu} = require('electron');
 const {
     INDEX_HTML_FILE_PATH,
     MAIN_WINDOW_OPTIONS,

@@ -55,7 +55,7 @@ class RecoveryToolService {
      * @param {string|null} password
      * @return {Promise<string>}
      */
-    async recoverXpriv(recoveryData, privateKeyBuffer, privateKeyType, password= null) {
+    async recoverXpriv(recoveryData, privateKeyBuffer, privateKeyType, password = null) {
         let rsaPrivateKey;
         try {
             rsaPrivateKey = privateKeyType.includes(privateKeyTypeEnum.SJCL_ENCRYPTED)
