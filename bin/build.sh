@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 os=("linux" "mac" "windows")
 if ! [[ ${os[*]} =~ $(echo "\<${1}\>") ]]
 then
