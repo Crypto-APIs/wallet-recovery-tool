@@ -1,6 +1,6 @@
 'use strict';
 
-const { promises: fs } = require('fs');
+const {promises: fs} = require('fs');
 const configObject = require('../config');
 const RecoveryToolService = require('../lib/services/recoveryToolService');
 const Validator = require('../validation/validator');

@@ -1,7 +1,9 @@
 'use strict';
 
-const { dialog } = require('electron');
+const {dialog} = require('electron');
 const BaseService = require('./base');
+const privateKeyTypeEnum = require("../lib/enumerations/privateKeyType");
+const {promises: fs} = require('fs');
 
 class FileService extends BaseService {
     constructor(mainWindow) {
@@ -16,7 +18,7 @@ class FileService extends BaseService {
         const fileData = await dialog.showOpenDialog({
             properties: ['openFile'],
             filters: [
-                { name: 'JSON', extensions: ['json'] },
+                {name: 'JSON', extensions: ['json']},
             ]
         });
 
@@ -39,20 +41,25 @@ class FileService extends BaseService {
     }
 
     /**
+     * @param {object} event
+     * @param {string} privateKeyType
      * @return {Promise<Electron.OpenDialogReturnValue>}
      */
-    async recoverRsaKey() {
+    async recoverRsaKey(event, privateKeyType) {
         const fileData = await dialog.showOpenDialog({
             properties: ['openFile']
         });
 
         let status = true;
         if (!fileData.canceled) {
-            const recoveryDataJson = await this.getJsonFromFile(fileData.filePaths[0]);
-            if (!recoveryDataJson) {
+            const privateKey = privateKeyType.includes(privateKeyTypeEnum.SJCL_ENCRYPTED)
+                ? await this.getJsonFromFile(fileData.filePaths[0])
+                : await fs.readFile(fileData.filePaths[0]).catch(_ => null);
+
+            if (!privateKey) {
                 status = false;
             } else {
-                const validationResponse = this.validator.validatePrivateKey(recoveryDataJson);
+                const validationResponse = this.validator.validatePrivateKey(privateKey, privateKeyType);
                 if (validationResponse) {
                     status = false;
                 }
