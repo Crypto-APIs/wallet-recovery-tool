@@ -47,7 +47,7 @@ class RecoverService extends BaseService {
 
         const recoveryDataEntity = new RecoveryDataEntity(recoveryDataJson);
         try {
-            return await this.recoveryToolService.recoverXpriv(recoveryDataEntity, await this.fs.readFile(rsaPath), privateKeyType, password);
+            return this.recoveryToolService.recoverXpriv(recoveryDataEntity, await this.fs.readFile(rsaPath), privateKeyType, password);
         } catch (e) {
             return e;
         }

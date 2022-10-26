@@ -1,15 +1,14 @@
 'use strict';
 
 const NodeRsa = require('node-rsa');
-const BigNumber = require('bignumber.js');
-const {CURVE_CONFIG, CURVE} = require("../enumerations/curve");
-const Point = require("../ellipticcurve/point");
-const Field = require("../ellipticcurve/field");
-const mathUtils = require("../utils/math");
+const {CURVE} = require("../enumerations/curve");
 const crypto = require("crypto");
 const xpubUtils = require('../utils/xpub');
 const sjcl = require('sjcl');
-const privateKeyTypeEnum = require("../enumerations/privateKeyType")
+const privateKeyTypeEnum = require("../enumerations/privateKeyType");
+const EC = require("elliptic").ec;
+const BN = require("bn.js");
+const lagrange = require("../utils/lagrange");
 
 class RecoveryToolService {
 
@@ -18,8 +17,7 @@ class RecoveryToolService {
     ZERO_NONCE = "000000000000000000000000";
 
     constructor() {
-        this.curve = CURVE["SECP256K1"];
-        this.curveConfig = CURVE_CONFIG[this.curve];
+        this.curve = new EC(CURVE.SECP256K1).curve;
     }
 
     /**
@@ -53,24 +51,22 @@ class RecoveryToolService {
      * @param {Buffer} privateKeyBuffer
      * @param {string} privateKeyType
      * @param {string|null} password
-     * @return {Promise<string>}
+     * @return {string}
      */
-    async recoverXpriv(recoveryData, privateKeyBuffer, privateKeyType, password = null) {
+    recoverXpriv(recoveryData, privateKeyBuffer, privateKeyType, password = null) {
         let rsaPrivateKey;
         try {
             rsaPrivateKey = privateKeyType.includes(privateKeyTypeEnum.SJCL_ENCRYPTED)
                 ? sjcl.decrypt(password, privateKeyBuffer.toString())
                 : privateKeyBuffer.toString();
         } catch (e) {
-            throw new Error("Invalid password!")
+            throw new Error("Invalid password!");
         }
 
-        const recoveredPrivateKeyPromise = this.recoverPrivateKey(recoveryData.getKeyParts(), rsaPrivateKey);
-        const recoveredChainCodePromise = this.recoverChainCode(recoveryData.getMasterChainCodeKey(), recoveryData.getMasterChainCode(), rsaPrivateKey);
+        const privateKey = this.recoverPrivateKey(recoveryData.getKeyParts(), rsaPrivateKey);
+        const chainCode = this.recoverChainCode(recoveryData.getMasterChainCodeKey(), recoveryData.getMasterChainCode(), rsaPrivateKey);
 
-        const [privateKey, chainCode] = await Promise.all([recoveredPrivateKeyPromise, recoveredChainCodePromise]);
-
-        return xpubUtils.generateXpriv(Buffer.from(chainCode, 'hex'), privateKey);
+        return xpubUtils.generateXpriv(chainCode, privateKey);
     }
 
     /**
@@ -79,7 +75,7 @@ class RecoveryToolService {
      * @param {Buffer} ersPrivateKey
      * @return {string}
      */
-    async recoverChainCode(masterChainCodeKey, masterChainCode, ersPrivateKey) {
+    recoverChainCode(masterChainCodeKey, masterChainCode, ersPrivateKey) {
         const decryptedKey = this.rsaDecrypt(masterChainCodeKey, ersPrivateKey);
 
         return this.aesGcmDecrypt(masterChainCode, decryptedKey);
@@ -90,21 +86,12 @@ class RecoveryToolService {
      * @param {Buffer} ersPrivateKey
      * @return {string}
      */
-    async recoverPrivateKey(keyParts, ersPrivateKey) {
-        let result = new BigNumber(1);
+    recoverPrivateKey(keyParts, ersPrivateKey) {
+        const shares = keyParts.map(part => this.recoverKeyShare(part, ersPrivateKey));
 
-        const recoveredSharesPromises = [];
-        for (const part of keyParts) {
-            recoveredSharesPromises.push(this.recoverKeyShare(part, ersPrivateKey));
-        }
-
-        const recoveredShares = await Promise.all(recoveredSharesPromises);
-        for (const recoveredShare of recoveredShares) {
-            result = result.multipliedBy(recoveredShare);
-            result = mathUtils.euclideanMod(result, this.curveConfig.q);
-        }
-
-        return result.toString(16);
+        return shares.reduce((curr, prev) => {
+            return curr.mul(prev).mod(this.curve.n)
+        }, new BN(1)).toString(16);
     }
 
     /**
@@ -127,36 +114,33 @@ class RecoveryToolService {
     /**
      * @param {KeyPartEntity} keyPart
      * @param {Buffer} ersPrivateKey
+     * return {BN}
      */
-    async recoverKeyShare(keyPart, ersPrivateKey) {
+    recoverKeyShare(keyPart, ersPrivateKey) {
         const keyPartValuesEntries = Object.entries(keyPart.getValues());
         const indices = [];
         const values = [];
-        const qField = new Field(this.curveConfig.q);
-        const gPoint = new Point(this.curveConfig.gx, this.curveConfig.gy);
 
         for (const [index, value] of keyPartValuesEntries) {
             values.push(value);
-            indices.push(new BigNumber(index));
+            indices.push(new BN(index));
         }
 
         const candidateIndex = keyPartValuesEntries.length;
-        values.push(null);
-        indices.push(new BigNumber(-1));
-        const keyShareCommitment = this.decodeUncompressedPoint(keyPart.getCommitment());
+        const keyShareCommitment = this.curve.decodePoint(keyPart.getCommitment());
         let keyShare = null;
         for (const [encryptedIndex, encryptedValue] of Object.entries(keyPart.getEncryptedValues())) {
             const decryptedValue = this.rsaDecrypt(encryptedValue, ersPrivateKey);
-            values[candidateIndex] = qField.decodeElement(decryptedValue.toString('hex'));
-            indices[candidateIndex] = new BigNumber(encryptedIndex);
-            const candidateKeyShare = qField.recombine(new BigNumber(0), candidateIndex, indices, values);
-            const candidateKeyShareCommitment = await gPoint.mul(candidateKeyShare);
-            if (!keyShareCommitment.equals(candidateKeyShareCommitment)) {
-                continue;
-            }
+            indices[candidateIndex] = new BN(encryptedIndex);
+            values[candidateIndex] = new BN(decryptedValue.toString('hex'), 16).mod(this.curve.n);
 
-            keyShare = candidateKeyShare;
-            break;
+            const candidateKeyShare = lagrange.reconstruct(candidateIndex, indices, values);
+            const candidateKeyShareCommitment = this.curve.g.mul(candidateKeyShare);
+
+            if (keyShareCommitment.eq(candidateKeyShareCommitment)) {
+                keyShare = candidateKeyShare;
+                break;
+            }
         }
 
         if (keyShare === null) {
@@ -184,28 +168,6 @@ class RecoveryToolService {
             return rsa.decrypt(encryptedData);
         } catch (e) {
             throw new Error("Invalid private key!")
-        }
-    }
-
-    /**
-     * @param {Buffer} commitment
-     * @return {Point}
-     */
-    decodeUncompressedPoint(commitment) {
-        const bitLength = BigInt(this.curveConfig.p).toString(2).length;
-        const elementSize = Math.floor((bitLength + 7) / 8);
-
-        if (commitment.length === 1 && commitment[0] === 0) {
-            return new Point("0x0", "0x0");
-        } else {
-            if ((commitment.length !== 1 + (2 * elementSize)) || (commitment[0] !== 4)) {
-                throw new Error("Invalid point length");
-            }
-
-            const x = commitment.slice(1, elementSize + 1).toString('hex');
-            const y = commitment.slice(elementSize + 1).toString('hex');
-
-            return new Point(x, y);
         }
     }
 }

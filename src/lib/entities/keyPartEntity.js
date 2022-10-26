@@ -1,12 +1,12 @@
 'use strict';
 
 const BaseEntity = require("./baseEntity");
-const BigNumber = require("bignumber.js");
+const BN = require("bn.js");
 
 class KeyPartEntity extends BaseEntity {
 
     /**
-     * @return {Object<string, BigNumber>}
+     * @return {Object<string, BN>}
      */
     getValues() {
         return this.data['values'];
@@ -37,7 +37,7 @@ class KeyPartEntity extends BaseEntity {
 
         const values = {};
         for (const [index, value] of Object.entries(data['values'])) {
-            values[index] = new BigNumber(Buffer.from(value, 'base64').toString('hex'), 16);
+            values[index] = new BN(Buffer.from(value, 'base64').toString('hex'), 16);
         }
 
         const encryptedValues = {};

@@ -19,9 +19,8 @@
     "url": "git+ssh://git@bitbucket.org/menadev/cryptoapis-wallet-recovery-tool.git"
   },
   "dependencies": {
-    "bigint-mod-arith": "^3.0.1",
-    "bignumber.js": "^9.0.1",
-    "bs58check": "^2.1.2",
+    "bn.js": "^4.12.0",
+    "elliptic": "^6.5.4",
     "generate-password": "^1.7.0",
     "hdkey": "^2.0.1",
     "node-rsa": "^1.1.1",

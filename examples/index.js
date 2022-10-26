@@ -3,6 +3,7 @@
 const RecoveryToolService = require("../src/lib/services/recoveryToolService");
 const fs = require("fs").promises;
 const RecoveryDataEntity = require("../src/lib/entities/recoveryDataEntity");
+const privateKeyType = require("../src/lib/enumerations/privateKeyType.js");
 
 (async () => {
     const exampleDataDir = __dirname + "/data/";
@@ -13,7 +14,7 @@ const RecoveryDataEntity = require("../src/lib/entities/recoveryDataEntity");
     const recoveryDataEntity = new RecoveryDataEntity(recoveryDataJson);
     const tool = new RecoveryToolService();
     console.time("recover")
-    const xprv = await tool.recoverXpriv(recoveryDataEntity, privateKeyData);
+    const xprv = tool.recoverXpriv(recoveryDataEntity, privateKeyData, privateKeyType.RAW_PEM);
     console.timeEnd("recover")
     console.log(xprv);
 })();
