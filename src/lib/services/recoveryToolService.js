@@ -1,24 +1,16 @@
 'use strict';
 
-const NodeRsa = require('node-rsa');
-const {CURVE} = require("../enumerations/curve");
+const {DOMAIN_PARAMS} = require("../enumerations/curve");
 const crypto = require("crypto");
 const xpubUtils = require('../utils/xpub');
 const sjcl = require('sjcl');
 const privateKeyTypeEnum = require("../enumerations/privateKeyType");
-const EC = require("elliptic").ec;
 const BN = require("bn.js");
 const lagrange = require("../utils/lagrange");
+const curveUtils = require("../utils/curve");
+const sharingType = require("../enumerations/sharingType");
 
 class RecoveryToolService {
-
-    AES_256_GCM = 'aes-256-gcm';
-    GCM_TAG_SIZE = 16;
-    ZERO_NONCE = "000000000000000000000000";
-
-    constructor() {
-        this.curve = new EC(CURVE.SECP256K1).curve;
-    }
 
     /**
      * @param {string} password
@@ -27,7 +19,6 @@ class RecoveryToolService {
     generateRsaKeyPair(password) {
         const options = {
             modulusLength: 2048,
-            namedCurve: 'secp256k1',
             publicKeyEncoding: {
                 type: 'pkcs1',
                 format: 'pem',
@@ -63,7 +54,7 @@ class RecoveryToolService {
             throw new Error("Invalid password!");
         }
 
-        const privateKey = this.recoverPrivateKey(recoveryData.getKeyParts(), rsaPrivateKey);
+        const privateKey = this.recoverPrivateKey(recoveryData, rsaPrivateKey);
         const chainCode = this.recoverChainCode(recoveryData.getMasterChainCodeKey(), recoveryData.getMasterChainCode(), rsaPrivateKey);
 
         return xpubUtils.generateXpriv(chainCode, privateKey);
@@ -76,68 +67,66 @@ class RecoveryToolService {
      * @return {string}
      */
     recoverChainCode(masterChainCodeKey, masterChainCode, ersPrivateKey) {
-        const decryptedKey = this.rsaDecrypt(masterChainCodeKey, ersPrivateKey);
+        const decryptedKey = crypto.privateDecrypt({key: ersPrivateKey, oaepHash: "sha256"}, masterChainCodeKey);
 
-        return this.aesGcmDecrypt(masterChainCode, decryptedKey);
+        const gcmTagSize = 16;
+        const algorithm = "aes-256-gcm";
+        const nonce = Buffer.alloc(12, '00', 'hex');
+        const authTag = masterChainCode.slice(masterChainCode.length - gcmTagSize);
+
+        const decipher = crypto.createDecipheriv(algorithm, decryptedKey, nonce)
+            .setAuthTag(authTag);
+        const ciphertext = masterChainCode.slice(0, masterChainCode.length - gcmTagSize);
+
+        return decipher.update(ciphertext).toString('hex');
     }
 
     /**
-     * @param {KeyPartEntity[]} keyParts
+     * @param {RecoveryDataEntity} recoveryDataEntity
      * @param {Buffer} ersPrivateKey
      * @return {string}
      */
-    recoverPrivateKey(keyParts, ersPrivateKey) {
-        const shares = keyParts.map(part => this.recoverKeyShare(part, ersPrivateKey));
+    recoverPrivateKey(recoveryDataEntity, ersPrivateKey) {
+        const domainParams = DOMAIN_PARAMS[recoveryDataEntity.getCurve()];
+        const shares = recoveryDataEntity.getKeyParts().map(part => this.recoverKeyShare(part, ersPrivateKey, recoveryDataEntity.getCurve()));
 
-        return shares.reduce((curr, prev) => {
-            return curr.mul(prev).mod(this.curve.n)
-        }, new BN(1)).toString(16);
-    }
+        const privateKey = shares.reduce((acc, val) => {
+            return (sharingType.ADDITIVE.includes(recoveryDataEntity.getSharingType()) ? acc.add(val) : acc.mul(val)).mod(domainParams.n);
+        }).toString(16);
 
-    /**
-     * @param {Buffer} encodedData
-     * @param {Buffer} aesKey
-     * @return {string}
-     */
-    aesGcmDecrypt(encodedData, aesKey) {
-        const nonce = Buffer.from(this.ZERO_NONCE, 'hex')
-        const ciphertext = encodedData.slice(0, encodedData.length - this.GCM_TAG_SIZE);
-        const tag = encodedData.slice(encodedData.length - this.GCM_TAG_SIZE);
-        const decipher = crypto.createDecipheriv(this.AES_256_GCM, aesKey, nonce);
-        decipher.setAuthTag(tag);
-
-        let decodedData = decipher.update(ciphertext, 'hex', 'hex');
-        decodedData += decipher.final('hex');
-        return decodedData;
+        return privateKey.length % 2 ? `0${privateKey}` : privateKey.length < 64 ? `00${privateKey}` : privateKey;
     }
 
     /**
      * @param {KeyPartEntity} keyPart
      * @param {Buffer} ersPrivateKey
-     * return {BN}
+     * @param {string} curve
+     * returns {BN}
      */
-    recoverKeyShare(keyPart, ersPrivateKey) {
-        const keyPartValuesEntries = Object.entries(keyPart.getValues());
+    recoverKeyShare(keyPart, ersPrivateKey, curve) {
+        const domainParams = DOMAIN_PARAMS[curve];
+        const keyPartValues = keyPart.getValues();
+        const encryptedValues = keyPart.getEncryptedValues();
+        const commitment = curveUtils.decodePoint(curve, keyPart.getCommitment());
         const indices = [];
         const values = [];
 
-        for (const [index, value] of keyPartValuesEntries) {
-            values.push(value);
-            indices.push(new BN(index));
+        for (const key in keyPartValues) {
+            values.push(keyPartValues[key]);
+            indices.push(new BN(key));
         }
 
-        const candidateIndex = keyPartValuesEntries.length;
-        const keyShareCommitment = this.curve.decodePoint(keyPart.getCommitment());
         let keyShare = null;
-        for (const [encryptedIndex, encryptedValue] of Object.entries(keyPart.getEncryptedValues())) {
-            const decryptedValue = this.rsaDecrypt(encryptedValue, ersPrivateKey);
-            indices[candidateIndex] = new BN(encryptedIndex);
-            values[candidateIndex] = new BN(decryptedValue.toString('hex'), 16).mod(this.curve.n);
+        for (const key in encryptedValues) {
+            const encryptedValue = encryptedValues[key];
+            const decryptedValue = crypto.privateDecrypt({key: ersPrivateKey, oaepHash: "sha256"}, encryptedValue);
+            indices[indices.length] = new BN(key);
+            values[values.length] = new BN(decryptedValue).mod(domainParams.n);
 
-            const candidateKeyShare = lagrange.reconstruct(candidateIndex, indices, values);
-            const candidateKeyShareCommitment = this.curve.g.mul(candidateKeyShare);
+            const candidateKeyShare = lagrange.reconstruct(indices, values, domainParams.n);
+            const candidateKeyShareCommitment = domainParams.g.mul(candidateKeyShare);
 
-            if (keyShareCommitment.eq(candidateKeyShareCommitment)) {
+            if (commitment.eq(candidateKeyShareCommitment)) {
                 keyShare = candidateKeyShare;
                 break;
             }
@@ -148,27 +137,6 @@ class RecoveryToolService {
         }
 
         return keyShare;
-    }
-
-    /**
-     * @param {Buffer} encryptedData
-     * @param {Buffer} ersPrivateKey
-     * @return {Buffer}
-     */
-    rsaDecrypt(encryptedData, ersPrivateKey) {
-        const rsa = new NodeRsa(ersPrivateKey);
-        rsa.setOptions({
-            environment: 'browser',
-            encryptionScheme: {
-                hash: 'sha256',
-            }
-        });
-
-        try {
-            return rsa.decrypt(encryptedData);
-        } catch (e) {
-            throw new Error("Invalid private key!")
-        }
     }
 }
 

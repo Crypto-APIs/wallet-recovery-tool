@@ -1,47 +1,31 @@
 'use strict';
 
 const BN = require("bn.js");
-const EC = require("elliptic").ec;
-const {CURVE} = require("../enumerations/curve");
 
 /**
- *
- * @param {number} t
- * @param {BN[]} x
- * @param {BN[]} y
+ * @param {BN[]} indices
+ * @param {BN[]} values
+ * @param {BN} n
  * @returns {BN}
  */
-module.exports.reconstruct = (t, x, y) => {
-    if (x.length !== y.length) {
-        throw new Error(`Mismatch between number of x and y values`)
+module.exports.reconstruct = (indices, values, n) => {
+    if (indices.length !== values.length) {
+        throw new Error(`Mismatch between length of indices and values`)
     }
-
-    if (x.length < t + 1) {
-        throw new Error(`Too few points to interpolate for the given threshold`)
-    }
-
-    const ec = new EC(CURVE.SECP256K1);
-    const n = ec.curve.n;
 
     let numerator = new BN(0);
     let denominator = new BN(0);
 
-    for (let i = 0; i < x.length; i++) {
-        const lPrime = ((i, x) => {
-            let result = new BN(1);
-            for (let j = 0; j < x.length; j++) {
-                if (i === j) {
-                    continue;
-                }
-
-                result = result.mul(x[j].sub(x[i]));
+    for (let i = 0; i < indices.length; i++) {
+        let temp = new BN(1);
+        for (let j = 0; j < indices.length; j++) {
+            if (i !== j) {
+                temp = temp.mul(indices[j].sub(indices[i]));
             }
+        }
 
-            return result;
-        })(i, x);
-
-        const value = lPrime.mul(new BN(0).sub(x[i])).invm(n);
-        numerator = numerator.add(value.mul(y[i]));
+        const value = temp.mul(indices[i].neg()).invm(n);
+        numerator = numerator.add(value.mul(values[i]));
         denominator = denominator.add(value);
     }
 

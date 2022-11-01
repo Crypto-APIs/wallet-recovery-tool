@@ -2,6 +2,7 @@
 
 const KeyPart = require("./keyPartEntity");
 const BaseEntity = require("./baseEntity");
+const curveUtils = require("../utils/curve");
 
 class RecoveryDataEntity extends BaseEntity {
 
@@ -27,21 +28,34 @@ class RecoveryDataEntity extends BaseEntity {
     }
 
     /**
+     * @returns {string}
+     */
+    getSharingType() {
+        return this.data["sharingType"];
+    }
+
+    /**
+     * @returns {string}
+     */
+    getCurve() {
+        return this.data["curve"];
+    }
+
+    /**
      * @inheritDoc
      */
     _prepareData(data) {
-        const validationResult = this._validateAttributes(data);
-        if (validationResult) {
-            throw Error(validationResult);
-        }
+        const publicKey = Buffer.from(data["public_key"], 'base64').slice(23);
+        const curve = curveUtils.extractCurveFromPublicKey(publicKey);
 
         return {
             keyParts: data['key_parts'].map(keyPartData => new KeyPart(keyPartData)),
-            publicKey: Buffer.from(data['public_key'], 'base64'),
+            publicKey: publicKey,
             sharingType: data['sharing_type'],
             version: data['version'],
             masterChainCode: Buffer.from(data['master_chain_code'], 'base64'),
-            masterChainCodeKey: Buffer.from(data['master_chain_code_key'], 'base64')
+            masterChainCodeKey: Buffer.from(data['master_chain_code_key'], 'base64'),
+            curve: curve
         }
     }
 
@@ -57,14 +71,10 @@ class RecoveryDataEntity extends BaseEntity {
      * @inheritDoc
      */
     _validateAttributes(data) {
-        let errorMsg = super._validateAttributes(data);
-        if (!errorMsg) {
-            if (!Array.isArray(data['key_parts']) || data['key_parts'].length === 0) {
-                errorMsg = 'key_parts attribute is empty or not an array';
-            }
+        super._validateAttributes(data);
+        if (!Array.isArray(data['key_parts']) || data['key_parts'].length === 0) {
+            throw new Error('key_parts attribute is empty or not an array');
         }
-
-        return errorMsg;
     }
 }
 

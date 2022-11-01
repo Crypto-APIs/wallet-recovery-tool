@@ -8,11 +8,9 @@ const HDKey = require("hdkey");
  * @return {string}
  */
 function generateXpriv(chainCode, key) {
-    const privateKey = key.length % 2 ? `0${key}` : key;
-
     const hd = new HDKey();
     hd.chainCode = Buffer.from(chainCode, 'hex');
-    hd.privateKey = Buffer.from(privateKey, 'hex');
+    hd.privateKey = Buffer.from(key, 'hex');
 
     return hd.deriveChild(0).privateExtendedKey;
 }

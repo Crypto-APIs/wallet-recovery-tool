@@ -30,19 +30,14 @@ class KeyPartEntity extends BaseEntity {
      * @inheritDoc
      */
     _prepareData(data) {
-        const validationResult = this._validateAttributes(data);
-        if (validationResult) {
-            throw new Error(validationResult);
-        }
-
         const values = {};
-        for (const [index, value] of Object.entries(data['values'])) {
-            values[index] = new BN(Buffer.from(value, 'base64').toString('hex'), 16);
+        for (const key in data['values']) {
+            values[key] = new BN(Buffer.from(data['values'][key], 'base64'), 16);
         }
 
         const encryptedValues = {};
-        for (const [index, value] of Object.entries(data['encrypted_values'])) {
-            encryptedValues[index] = Buffer.from(value, 'base64');
+        for (const key in data['encrypted_values']) {
+            encryptedValues[key] = Buffer.from(data['encrypted_values'][key], 'base64');
         }
 
         return {

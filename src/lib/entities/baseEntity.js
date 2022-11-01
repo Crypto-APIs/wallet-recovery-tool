@@ -6,6 +6,7 @@ class BaseEntity {
      * @param {Object} data
      */
     constructor(data) {
+        this._validateAttributes(data);
         this.data = this._prepareData(data);
     }
 
@@ -28,17 +29,15 @@ class BaseEntity {
 
     /**
      * @param {Object} data
-     * @return {string|null}
+     * @return {void}
      * @protected
      */
     _validateAttributes(data = {}) {
         const requiredAttributes = this._getRequiredAttributes();
         const missingAttributes = requiredAttributes.filter(attr => Object.keys(data).indexOf(attr) === -1);
         if (missingAttributes.length > 0) {
-            return "Missing attributes: " + missingAttributes;
+            throw new Error("Missing attributes: " + missingAttributes);
         }
-
-        return null;
     }
 }
 
