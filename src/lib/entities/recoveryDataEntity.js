@@ -45,7 +45,7 @@ class RecoveryDataEntity extends BaseEntity {
      * @inheritDoc
      */
     _prepareData(data) {
-        const publicKey = Buffer.from(data["public_key"], 'base64').slice(23);
+        const publicKey = Buffer.from(data["public_key"], 'base64');
         const curve = curveUtils.extractCurveFromPublicKey(publicKey);
 
         return {

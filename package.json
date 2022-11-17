@@ -28,8 +28,8 @@
     "validate.js": "^0.13.1"
   },
   "devDependencies": {
-    "electron": "^15.3.5",
-    "electron-builder": "^22.10.5"
+    "electron": "^21.2.3",
+    "electron-builder": "^23.6.0"
   },
   "build": {
     "productName": "Crypto APIs Wallet Recovery Tool",

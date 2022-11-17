@@ -57,7 +57,7 @@ class RecoveryToolService {
         const privateKey = this.recoverPrivateKey(recoveryData, rsaPrivateKey);
         const chainCode = this.recoverChainCode(recoveryData.getMasterChainCodeKey(), recoveryData.getMasterChainCode(), rsaPrivateKey);
 
-        return xpubUtils.generateXpriv(chainCode, privateKey);
+        return xpubUtils.generateXpriv({curve: recoveryData.getCurve(), chainCode, key: privateKey});
     }
 
     /**
