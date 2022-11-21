@@ -27,8 +27,7 @@ First you need to clone the repository.
 
 Then you need to have `npm` package manager installed.
 
-To install and start the application you
-need to run these two commands.
+To install and start the application you need to run these two commands.
 
 ```bash
 npm i -D
