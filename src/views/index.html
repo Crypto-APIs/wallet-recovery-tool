@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+    <link href="../resources/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../resources/css/styles.css" rel="stylesheet">
+    <title>Crypto APIs Wallet Recovery Tool</title>
+  </head>
+  <body>
+    <div class="row">
+      <div class="col-3">
+        <!-- Sidebar -->
+        <nav id="sidebarMenu" class="d-lg-block sidebar bg-white">
+          <div class="list-group list-group-flush p-4 text-center">
+            <a id="logo" href="#">
+              <img class="w-100" alt="Logo" src="../resources/images/logo.svg"/>
+            </a>
+          </div>
+          <div class="list-group list-group-flush">
+            <button id="home"
+                    class="list-group-item list-group-item-action py-3 pl-2 ripple active-menu-option"
+                    aria-current="true">
+              <span>Home</span>
+            </button>
+          </div>
+          <div class="list-group list-group-flush">
+            <button id="generate-password"
+                    class="list-group-item list-group-item-action py-3 pl-2 ripple"
+                    aria-current="true">
+              <span>Generate Random Password</span>
+            </button>
+          </div>
+          <div class="list-group list-group-flush">
+            <button id="rsa-key-pairs"
+                    class="list-group-item list-group-item-action py-3 pl-2 ripple"
+                    aria-current="true">
+              <span>Generate RSA Key</span>
+            </button>
+          </div>
+          <div class="list-group list-group-flush">
+            <button id="recovery"
+                    class="list-group-item list-group-item-action py-3 pl-2 ripple"
+                    aria-current="true">
+              <span>Recover Wallet</span>
+            </button>
+          </div>
+        </nav>
+        <!-- Sidebar -->
+      </div>
+      <div class="col-9">
+        <div class="container">
+          <div class="row align-content-center">
+            <h1>Crypto APIs Recovery Tool</h1>
+            <h4>This is an open-source tool that can be used offline to recover your Wallet. In addition, it has helpful functionalities like generating passwords and RSA Keys.</h4>
+            <p>This Open Source Tool will help you back up and then recover your Crypto APIs Wallet in case of an emergency. It should be used together with the WaaS Backup and Recover feature in your Crypto APIs 2.0 Dashboard <a class="cryptoapis-wallets-link" href="#">here</a>.</p>
+            <p>To backup your Wallet simply follow the steps bellow:</p>
+            <div>
+              <ol>
+                <li>Open our Open Source Recovery Tool.</li>
+                <li>You would need to first generate a RSA key pair of public and private keys. For this purpose you require a password. It can be of your choosing, or you can generate a random and complex password by navigating to the “Generate Random Password” menu section.</li>
+                <li>Use the selected password in the "Generate RSA key pairs" menu section. The result will be one public key and one private key. Keep that password safe as it will be needed to recover your Wallet.</li>
+                <li>Navigate to your Crypto APIs 2.0 Dashboard <a class="cryptoapis-wallets-link" href="#">here</a>. If you don’t have a Wallet yet, you can create one. If you have already created your Wallet, then click on the “Back up Wallet” button. Use the public key you’ve just generated in our Open Source Recovery Tool in the two fields for the RSA key.</li>
+                <li>The private key needs to be stored in a safe location, as it will be required for the recovery process of your Wallet!</li>
+                <li>In the Crypto APIs 2.0 Dashboard complete the backup of your Wallet. The PDF file downloaded will have more information on the Recovery process.</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="common.js"></script>
+  </body>
+</html>

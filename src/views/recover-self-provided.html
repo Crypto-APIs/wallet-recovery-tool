@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link href="../resources/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../resources/css/styles.css" rel="stylesheet">
+    <title>Crypto APIs WaaS Emergency Recovery Tool</title>
+</head>
+<body>
+<div class="row">
+    <div class="col-3">
+        <!-- Sidebar -->
+        <nav id="sidebarMenu" class="d-lg-block sidebar bg-white">
+            <div class="list-group list-group-flush p-4 text-center">
+                <a id="logo" href="#">
+                    <img class="w-100" alt="Logo" src="../resources/images/logo.svg"/>
+                </a>
+            </div>
+            <div class="list-group list-group-flush">
+                <button id="home"
+                        class="list-group-item list-group-item-action py-3 pl-2 ripple"
+                        aria-current="true">
+                    <span>Home</span>
+                </button>
+            </div>
+            <div class="list-group list-group-flush">
+                <button id="generate-password"
+                        class="list-group-item list-group-item-action py-3 pl-2 ripple"
+                        aria-current="true">
+                    <span>Generate Random Password</span>
+                </button>
+            </div>
+            <div class="list-group list-group-flush">
+                <button id="rsa-key-pairs"
+                        class="list-group-item list-group-item-action py-3 pl-2 ripple"
+                        aria-current="true">
+                    <span>Generate RSA Key</span>
+                </button>
+            </div>
+            <div class="list-group list-group-flush">
+                <button id="recovery"
+                        class="list-group-item list-group-item-action py-3 pl-2 ripple active-menu-option"
+                        aria-current="true">
+                    <span>Recover Wallet</span>
+                </button>
+            </div>
+        </nav>
+        <!-- Sidebar -->
+    </div>
+    <div class="col-9">
+        <div class="container">
+            <div class="row">
+                <h1>Recover wallet with RSA key provided by client.</h1>
+                <p>You can use this offline tool to generate a master xPriv for your wallet. You will need to provide the Backup Data File (.json file you downloaded from Crypto APIs dashboard when you backed up your Wallet), the RSA Private Key, and the RSA Key Password.</p>
+            </div>
+            <div class="row mt-3">
+                <div class="col input-label">
+                    Recovery data file:<span id="recoveryDataFileStatus"></span>
+                </div>
+                <div class="col">
+                    <button id="recoveryDataFileButton" type="button" class="btn btn-secondary">Choose file</button>
+                </div>
+            </div>
+            <div class="row" id="recoveryDataFileText"></div>
+            <div class="row mt-3">
+                <div class="col input-label">
+                    <label for="privateKeySelect">Private Key Type:</label>
+                </div>
+                <div class="col">
+                    <select class="form-control selectpicker" id="privateKeySelect" style="width:fit-content">
+                        <option value="sjclEncryptedPrivateKey">SJCL Encrypted Private Key</option>
+                        <option value="rawPemPrivateKey">Raw Pem Private Key</option>
+                    </select>
+                </div>
+            </div>
+            <div id="privateKeyContainer">
+                <div class="row mt-3">
+                    <div class="col input-label">
+                        Private RSA key:<span id="rsaFileStatus"></span>
+                    </div>
+                    <div class="col">
+                        <button id="rsaFileButton" type="button" class="btn btn-secondary">Choose file</button>
+                    </div>
+                </div>
+                <div class="row" id="rsaFileText"></div>
+                <div class="row mt-3">
+                    <div class="col input-label">
+                        Private RSA key password:<span id="passwordStatus"></span>
+                    </div>
+                    <div class="col">
+                        <!--suppress HtmlFormInputWithoutLabel -->
+                        <input type="text" id="password" class="form-control" />
+                    </div>
+                </div>
+                <div class="row" id="passwordText"></div>
+            </div>
+            <div class="row mt-3">
+                <div class="col">
+                    <button id="recoverButton" type="button" class="btn btn-success">Recover</button>
+                </div>
+            </div>
+        </div>
+        <div class="container" id="recoveryResultContainer"></div>
+    </div>
+</div>
+<script src="common.js"></script>
+<script src="recover-self-provided.js"></script>
+</body>
+</html>

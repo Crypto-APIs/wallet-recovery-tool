@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+    <link href="../resources/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../resources/css/styles.css" rel="stylesheet">
+    <title>Crypto APIs Wallet Recovery Tool</title>
+</head>
+<body>
+<div class="row">
+    <div class="col-3">
+        <!-- Sidebar -->
+        <nav id="sidebarMenu" class="d-lg-block sidebar bg-white">
+            <div class="list-group list-group-flush p-4 text-center">
+                <a id="logo" href="#">
+                    <img class="w-100" alt="Logo" src="../resources/images/logo.svg"/>
+                </a>
+            </div>
+            <div class="list-group list-group-flush">
+                <button id="home"
+                        class="list-group-item list-group-item-action py-3 pl-2 ripple"
+                        aria-current="true">
+                    <span>Home</span>
+                </button>
+            </div>
+            <div class="list-group list-group-flush">
+                <button id="generate-password"
+                        class="list-group-item list-group-item-action py-3 pl-2 ripple"
+                        aria-current="true">
+                    <span>Generate Random Password</span>
+                </button>
+            </div>
+            <div class="list-group list-group-flush">
+                <button id="rsa-key-pairs"
+                        class="list-group-item list-group-item-action py-3 pl-2 ripple active-menu-option"
+                        aria-current="true">
+                    <span>Generate RSA Key</span>
+                </button>
+            </div>
+            <div class="list-group list-group-flush">
+                <button id="recovery"
+                        class="list-group-item list-group-item-action py-3 pl-2 ripple"
+                        aria-current="true">
+                    <span>Recover Wallet</span>
+                </button>
+            </div>
+        </nav>
+        <!-- Sidebar -->
+    </div>
+    <div class="col-9">
+        <div class="container">
+            <div class="row">
+                <h1>Generate RSA Key</h1>
+                <p>You can use your own RSA key or use this random generator to create a new RSA Key. The private key of the RSA key will be encrypted with the provided password. Crypto APIs needs only the public key of this RSA key while you will need both the password and RSA private key to be able to restore your Wallet.</p>
+            </div>
+            <div class="row" id="recoveryDataFileText"></div>
+            <div class="row" id="rsaFileText"></div>
+            <div class="row">
+                <div class="col input-label">
+                    Private RSA Key Encryption Password: <span id="passwordStatus"></span>
+                </div>
+                <div class="col">
+                    <!--suppress HtmlFormInputWithoutLabel -->
+                    <input type="text" id="password" class="form-control" minlength="5"/>
+                </div>
+            </div>
+            <div class="row" id="passwordText"></div>
+            <div class="row mt-3">
+                <div class="col">
+                    <button id="generate-button" type="button" class="btn btn-success">Generate RSA Key pair</button>
+                </div>
+            </div>
+        </div>
+        <div class="container" id="generate-rsa-result-container"></div>
+    </div>
+</div>
+<script src="common.js"></script>
+<script src="rsa-key-generator.js"></script>
+</body>
+</html>
