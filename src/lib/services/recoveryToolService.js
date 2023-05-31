@@ -55,30 +55,37 @@ class RecoveryToolService {
         }
 
         const privateKey = this.recoverPrivateKey(recoveryData, rsaPrivateKey);
-        const chainCode = this.recoverChainCode(recoveryData.getMasterChainCodeKey(), recoveryData.getMasterChainCode(), rsaPrivateKey);
+        const chainCode = this.recoverChainCode(recoveryData, rsaPrivateKey);
 
         return xpubUtils.generateXpriv({curve: recoveryData.getCurve(), chainCode, key: privateKey});
     }
 
     /**
-     * @param {Buffer} masterChainCodeKey
-     * @param {Buffer} masterChainCode
+     * @param {RecoveryDataEntity} recoveryData
      * @param {Buffer} ersPrivateKey
      * @return {string}
      */
-    recoverChainCode(masterChainCodeKey, masterChainCode, ersPrivateKey) {
-        const decryptedKey = crypto.privateDecrypt({key: ersPrivateKey, oaepHash: "sha256"}, masterChainCodeKey);
+    recoverChainCode(recoveryData, ersPrivateKey) {
+        const masterChainCode = recoveryData.getMasterChainCode();
+        const decryptedKey = crypto.privateDecrypt({key: ersPrivateKey, oaepHash: "sha256"}, recoveryData.getMasterChainCodeKey());
 
         const gcmTagSize = 16;
         const algorithm = "aes-256-gcm";
         const nonce = Buffer.alloc(12, '00', 'hex');
-        const authTag = masterChainCode.slice(masterChainCode.length - gcmTagSize);
+        const authTag = masterChainCode.subarray(masterChainCode.length - gcmTagSize);
 
         const decipher = crypto.createDecipheriv(algorithm, decryptedKey, nonce)
             .setAuthTag(authTag);
-        const ciphertext = masterChainCode.slice(0, masterChainCode.length - gcmTagSize);
+        const ciphertext = masterChainCode.subarray(0, masterChainCode.length - gcmTagSize);
+        const decrypted = decipher.update(ciphertext);
 
-        return decipher.update(ciphertext).toString('hex');
+        switch (recoveryData.getVersion()) {
+            case 1:
+                return decrypted.toString("hex");
+            case 2:
+            case 3:
+                return Buffer.from(JSON.parse(decrypted).master_chain_code, "base64").toString("hex");
+        }
     }
 
     /**

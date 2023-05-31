@@ -99,7 +99,7 @@ function generateFingerprint(publicKey) {
     const sha = crypto.createHash('sha256').update(publicKey).digest();
     const ripemd = crypto.createHash('ripemd160').update(sha).digest();
 
-    return ripemd.slice(0, 4).readUInt32BE(0)
+    return ripemd.subarray(0, 4).readUInt32BE(0)
 }
 
 module.exports = {
