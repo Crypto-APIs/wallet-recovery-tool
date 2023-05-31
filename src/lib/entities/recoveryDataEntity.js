@@ -35,6 +35,13 @@ class RecoveryDataEntity extends BaseEntity {
     }
 
     /**
+     * @returns {number}
+     */
+    getVersion() {
+        return this.data['version'];
+    }
+
+    /**
      * @returns {string}
      */
     getCurve() {
@@ -52,7 +59,7 @@ class RecoveryDataEntity extends BaseEntity {
             keyParts: data['key_parts'].map(keyPartData => new KeyPart(keyPartData)),
             publicKey: publicKey,
             sharingType: data['sharing_type'],
-            version: data['version'],
+            version: parseInt(data['version']),
             masterChainCode: Buffer.from(data['master_chain_code'], 'base64'),
             masterChainCodeKey: Buffer.from(data['master_chain_code_key'], 'base64'),
             curve: curve
